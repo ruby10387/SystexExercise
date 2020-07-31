@@ -1,0 +1,9 @@
+D:\Users\ruby2\source\ParkingInfo\ParkingLibrary\bin\Debug\netstandard2.0\ParkingLibrary.deps.json
+D:\Users\ruby2\source\ParkingInfo\ParkingLibrary\bin\Debug\netstandard2.0\ParkingLibrary.dll
+D:\Users\ruby2\source\ParkingInfo\ParkingLibrary\obj\Debug\netstandard2.0\ParkingLibrary.csprojAssemblyReference.cache
+D:\Users\ruby2\source\ParkingInfo\ParkingLibrary\obj\Debug\netstandard2.0\ParkingLibrary.AssemblyInfoInputs.cache
+D:\Users\ruby2\source\ParkingInfo\ParkingLibrary\obj\Debug\netstandard2.0\ParkingLibrary.AssemblyInfo.cs
+D:\Users\ruby2\source\ParkingInfo\ParkingLibrary\bin\Debug\netstandard2.0\ParkingLibrary.pdb
+D:\Users\ruby2\source\ParkingInfo\ParkingLibrary\obj\Debug\netstandard2.0\ParkingLibrary.dll
+D:\Users\ruby2\source\ParkingInfo\ParkingLibrary\obj\Debug\netstandard2.0\ParkingLibrary.pdb
+D:\Users\ruby2\source\ParkingInfo\ParkingLibrary\obj\Debug\netstandard2.0\ParkingLibrary.csproj.CoreCompileInputs.cache
