@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Data.SqlClient;
+using Dapper;
+using System.Linq;
 
 namespace ParkingLibrary
 {
@@ -19,6 +21,24 @@ namespace ParkingLibrary
         {
             connectionString = ConfigurationManager.ConnectionStrings["SqlSeverDBConn"].ConnectionString;
             mongoConnString = ConfigurationManager.ConnectionStrings["MongoDBConn"].ConnectionString;
+        }
+        
+        public List<ParkingData> Query(string search, DynamicParameters param = null)
+        {
+            List<ParkingData> results = new List<ParkingData>();
+            using (conn = new SqlConnection(connectionString))
+            {
+                results = conn.Query<ParkingData>(search, param).ToList();
+            }
+            return results;
+        }
+
+        public void DapperExecute(string execute, DynamicParameters param = null)
+        {
+            using (conn = new SqlConnection(connectionString))
+            {
+                conn.Execute(execute, param);
+            }
         }
 
         public SqlDataReader ReadData(string search, SqlParameter[] param = null) 

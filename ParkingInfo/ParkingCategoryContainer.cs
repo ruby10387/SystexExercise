@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ParkingInfo
 {
-    class ParkingCategory
+    class ParkingCategoryContainer
     {
         public string Id { get; set; }
         public string AvailableCar { get; set; }

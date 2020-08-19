@@ -1,28 +1,24 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Net;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Data.SqlClient;
-using System.Data;
 using ParkingLibrary;
-using System.Configuration;
-using System.Threading;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using System.Timers;
+using Dapper;
+using LatLng = ParkingLibrary.LatLng;
 
 namespace ParkingInfo
 {
     class Program
     {
-        private static System.Timers.Timer timer1;
-        private static System.Timers.Timer timer2;
+        private static Timer timer1;
+        private static Timer timer2;
 
         static void Main(string[] args)
         {
@@ -46,11 +42,11 @@ namespace ParkingInfo
 
         private static void SetTimer()
         {
-            timer1 = new System.Timers.Timer(15000);
+            timer1 = new System.Timers.Timer(50000000);
             timer1.Elapsed += OnTimedEvent1;
             timer1.AutoReset = true; //每次達到指定間隔時間後，就觸發事件
             timer1.Enabled = true; //啟動計時器
-            timer2 = new System.Timers.Timer(30000);
+            timer2 = new System.Timers.Timer(5000);
             timer2.Elapsed += OnTimedEvent2;
             timer2.AutoReset = true;
             timer2.Enabled = true;
@@ -74,8 +70,8 @@ namespace ParkingInfo
             for (int i = 0; i < 2; i++)
             {
                 string parkingSpace = GetJson("https://data.ntpc.gov.tw/api/datasets/E09B35A5-A738-48CC-B0F5-570B67AD9C78/json?page=" + i + "&size=1000");
-                List<ParkingCategory> data = JsonConvert.DeserializeObject<List<ParkingCategory>>(parkingSpace);
-                foreach (ParkingCategory item in data)
+                List<ParkingCategoryContainer> data = JsonConvert.DeserializeObject<List<ParkingCategoryContainer>>(parkingSpace);
+                foreach (ParkingCategoryContainer item in data)
                 {
                     BsonDocument doc = new BsonDocument { { "Id", item.Id }, { "AvailableCar", item.AvailableCar }, { "UpdateTime", DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") } };
                     if (documents.Count != 0)
@@ -110,22 +106,19 @@ namespace ParkingInfo
         private static void DoDailyWork()
         {
             ParkingClass1 condb = new ParkingClass1();
-            string searchInfo = @"select lon, lat from parking_info;";
+            string searchLonLat = @"select lon, lat from parking_info;";
+            List<ParkingData> info = condb.Query(searchLonLat, null);
             List<LatLng> latlng = new List<LatLng>();
-            SqlDataReader dr = condb.ReadData(searchInfo, null);
-            while (dr.Read()) //讀資料庫的經緯度
+            foreach (var item in info)
             {
-                latlng.Add(new LatLng { Lon = dr[0].ToString(), Lat = dr[1].ToString() });
+                latlng.Add(new LatLng { Lon = item.Lon, Lat = item.Lat });
             }
-            dr.Close();
-            condb.CloseDB();
             int num = latlng.Count;
-
             for (int i = 0; i < 2; i++)
             {
                 string parkingData = GetJson("https://data.ntpc.gov.tw/api/datasets/B1464EF0-9C7C-4A6F-ABF7-6BDF32847E68/json?page=" + i + "&size=1000");
                 //將json資料轉存到類別物件中
-                List<ParkingData> data = JsonConvert.DeserializeObject<List<ParkingData>>(parkingData);
+                List<ParkingDataContainer> data = JsonConvert.DeserializeObject<List<ParkingDataContainer>>(parkingData);
                 CoordinateTransform CoordinateTransform = new CoordinateTransform();
                 string updateInfo = @"UPDATE parking_info 
                                  SET name=@name,area=@area,address=@address,serviceTime=@serviceTime,payEX=@payEx
@@ -135,7 +128,7 @@ namespace ParkingInfo
                 string insertInfo = @"INSERT INTO parking_info (lon, lat, name, area, address, serviceTime, payEX, totalCar, totalMotor, summary, id, tel, updateTime) 
                                  VALUES (@lon,@lat,@name,@area,@address,@serviceTime,@payEx,@totalCar,@totalMotor,@summary,@id,@tel,convert(varchar, getdate(), 120));";
                 string executeString;
-                foreach (ParkingData item in data)
+                foreach (ParkingDataContainer item in data)
                 {
                     //將TWD97座標轉為一般經緯度座標
                     string lonlat = CoordinateTransform.TWD97_To_lonlat(Convert.ToDouble(item.Twd97X), Convert.ToDouble(item.Twd97Y), 2);
@@ -172,22 +165,20 @@ namespace ParkingInfo
                     }
                     try
                     {
-                        SqlParameter[] param = new SqlParameter[]
-                        {
-                            new SqlParameter("@lon", lon),
-                            new SqlParameter("@lat", lat),
-                            new SqlParameter("@name", item.Name),
-                            new SqlParameter("@area", item.Area),
-                            new SqlParameter("@address", item.Address),
-                            new SqlParameter("@serviceTime", item.ServiceTime),
-                            new SqlParameter("@payEx", ((object)item.PayEx) ?? DBNull.Value),
-                            new SqlParameter("@totalCar", item.TotalCar),
-                            new SqlParameter("@totalMotor", item.TotalMotor),
-                            new SqlParameter("@summary", ((object)item.Summary) ?? DBNull.Value),
-                            new SqlParameter("@id", item.Id),
-                            new SqlParameter("@tel", ((object)item.Id) ?? DBNull.Value)
-                        };
-                        condb.Execute(executeString, param);
+                        DynamicParameters parameters = new DynamicParameters();
+                        parameters.Add("@lon", lon);
+                        parameters.Add("@lat", lat);
+                        parameters.Add("@name", item.Name);
+                        parameters.Add("@area", item.Area);
+                        parameters.Add("@address", item.Address);
+                        parameters.Add("@serviceTime", item.ServiceTime);
+                        parameters.Add("@payEx", item.PayEx);
+                        parameters.Add("@totalCar", item.TotalCar);
+                        parameters.Add("@totalMotor", item.TotalMotor);
+                        parameters.Add("@summary", item.Summary);
+                        parameters.Add("@id", item.Id);
+                        parameters.Add("@tel", item.Tel);
+                        condb.DapperExecute(executeString, parameters);
                     }
                     catch (SqlException ex)
                     {
@@ -195,7 +186,92 @@ namespace ParkingInfo
                     }
                 }
             }
-            condb.CloseDB();
+            //ParkingClass1 condb = new ParkingClass1();
+            //string searchLonLat = @"select lon, lat from parking_info;";
+            //List<LatLng> latlng = new List<LatLng>();
+            //SqlDataReader dr = condb.ReadData(searchLonLat, null);
+            //while (dr.Read()) //讀資料庫的經緯度
+            //{
+            //    latlng.Add(new LatLng { Lon = dr[0].ToString(), Lat = dr[1].ToString() });
+            //}
+            //dr.Close();
+            //condb.CloseDB();
+            //int num = latlng.Count;
+
+            //for (int i = 0; i < 2; i++)
+            //{
+            //    string parkingData = GetJson("https://data.ntpc.gov.tw/api/datasets/B1464EF0-9C7C-4A6F-ABF7-6BDF32847E68/json?page=" + i + "&size=1000");
+            //    //將json資料轉存到類別物件中
+            //    List<ParkingData> data = JsonConvert.DeserializeObject<List<ParkingData>>(parkingData);
+            //    CoordinateTransform CoordinateTransform = new CoordinateTransform();
+            //    string updateInfo = @"UPDATE parking_info SET name=@name,area=@area,address=@address,
+            //                        serviceTime=@serviceTime,payEX=@payEx,totalCar=@totalCar,totalMotor=@totalMotor,
+            //                        summary=@summary,id=@id,tel=@tel,updateTime=convert(varchar, getdate(), 120) 
+            //                        WHERE lon=@lon and lat=@lat;";
+            //    string insertInfo = @"INSERT INTO parking_info (lon, lat, name, area, address, serviceTime, payEX, totalCar, totalMotor, summary, id, tel, updateTime) 
+            //                     VALUES (@lon,@lat,@name,@area,@address,@serviceTime,@payEx,@totalCar,@totalMotor,@summary,@id,@tel,convert(varchar, getdate(), 120));";
+            //    string executeString;
+            //    foreach (ParkingData item in data)
+            //    {
+            //        //將TWD97座標轉為一般經緯度座標
+            //        string lonlat = CoordinateTransform.TWD97_To_lonlat(Convert.ToDouble(item.Twd97X), Convert.ToDouble(item.Twd97Y), 2);
+            //        string[] lonlatArray = lonlat.Split(',');
+            //        string lon = lonlatArray[0];
+            //        string lat = lonlatArray[1];
+            //        Console.WriteLine("lon:" + lon + "lat:" + lat);
+            //        if (num != 0) //若資料庫有資料
+            //        {
+            //            bool repeat = false;
+            //            //判斷資料庫是否有相同經緯度的資料
+            //            foreach (LatLng loc in latlng)
+            //            {
+            //                if (loc.Lon == lon && loc.Lat == lat)
+            //                {
+            //                    repeat = true;
+            //                    break;
+            //                }
+            //            }
+
+            //            if (repeat == true)
+            //            {
+            //                executeString = updateInfo;
+            //            }
+            //            else
+            //            {
+            //                executeString = insertInfo;
+            //            }
+
+            //        }
+            //        else //資料庫沒有資料直接新增
+            //        {
+            //            executeString = insertInfo;
+            //        }
+            //        try
+            //        {
+            //            SqlParameter[] param = new SqlParameter[]
+            //            {
+            //                new SqlParameter("@lon", lon),
+            //                new SqlParameter("@lat", lat),
+            //                new SqlParameter("@name", item.Name),
+            //                new SqlParameter("@area", item.Area),
+            //                new SqlParameter("@address", item.Address),
+            //                new SqlParameter("@serviceTime", item.ServiceTime),
+            //                new SqlParameter("@payEx", ((object)item.PayEx) ?? DBNull.Value),
+            //                new SqlParameter("@totalCar", item.TotalCar),
+            //                new SqlParameter("@totalMotor", item.TotalMotor),
+            //                new SqlParameter("@summary", ((object)item.Summary) ?? DBNull.Value),
+            //                new SqlParameter("@id", item.Id),
+            //                new SqlParameter("@tel", ((object)item.Id) ?? DBNull.Value)
+            //            };
+            //            condb.Execute(executeString, param);
+            //        }
+            //        catch (SqlException ex)
+            //        {
+            //            Console.WriteLine(ex.Message); //查看SqlException錯誤內容
+            //        }
+            //    }
+            //}
+            //condb.CloseDB();
         }
 
 

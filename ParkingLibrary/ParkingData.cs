@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace ParkingInfo
+namespace ParkingLibrary
 {
     public class ParkingData
     {
@@ -35,7 +33,8 @@ namespace ParkingInfo
         public string TotalMotor { get; set; }
 
         public object TotalBike { get; set; }
-        public object AvailableCar { get; internal set; }
-    }
 
+        public string AvailableCar { get; set; }
+
+    }
 }

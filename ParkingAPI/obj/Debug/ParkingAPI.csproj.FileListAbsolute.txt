@@ -122,3 +122,5 @@ D:\Users\ruby2\source\ParkingInfo\ParkingAPI\bin\MongoDB.Driver.xml
 D:\Users\ruby2\source\ParkingInfo\ParkingAPI\bin\MongoDB.Driver.Core.xml
 D:\Users\ruby2\source\ParkingInfo\ParkingAPI\bin\Snappy.NET.xml
 D:\Users\ruby2\source\ParkingInfo\ParkingAPI\bin\System.Buffers.xml
+D:\Users\ruby2\source\ParkingInfo\ParkingAPI\bin\Dapper.dll
+D:\Users\ruby2\source\ParkingInfo\ParkingAPI\bin\Dapper.xml

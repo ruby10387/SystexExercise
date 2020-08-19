@@ -38,6 +38,9 @@
     <Reference Include="Crc32C.NET, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Crc32C.NET.1.0.5.0\lib\net20\Crc32C.NET.dll</HintPath>
     </Reference>
+    <Reference Include="Dapper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapper.2.0.35\lib\net461\Dapper.dll</HintPath>
+    </Reference>
     <Reference Include="DnsClient, Version=1.3.1.0, Culture=neutral, PublicKeyToken=4574bb5573c51424, processorArchitecture=MSIL">
       <HintPath>..\packages\DnsClient.1.3.1\lib\net471\DnsClient.dll</HintPath>
     </Reference>
@@ -108,9 +111,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CoordinateTransform.cs" />
-    <Compile Include="LatLng.cs" />
-    <Compile Include="ParkingCategory.cs" />
-    <Compile Include="ParkingData.cs" />
+    <Compile Include="ParkingCategoryContainer.cs" />
+    <Compile Include="ParkingDataContainer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

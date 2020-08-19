@@ -47,3 +47,5 @@ D:\Users\ruby2\source\ParkingInfo\ParkingInfo\bin\Debug\MongoDB.Driver.xml
 D:\Users\ruby2\source\ParkingInfo\ParkingInfo\bin\Debug\MongoDB.Driver.Core.xml
 D:\Users\ruby2\source\ParkingInfo\ParkingInfo\bin\Debug\Snappy.NET.xml
 D:\Users\ruby2\source\ParkingInfo\ParkingInfo\bin\Debug\System.Buffers.xml
+D:\Users\ruby2\source\ParkingInfo\ParkingInfo\bin\Debug\Dapper.dll
+D:\Users\ruby2\source\ParkingInfo\ParkingInfo\bin\Debug\Dapper.xml
